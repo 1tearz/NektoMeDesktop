@@ -1,0 +1,91 @@
+html, body, #root, .app, main {
+  background: linear-gradient(180deg,#172717,#0b120a) !important;
+  color: #efeade !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+*,
+*::before,
+*::after {
+  background-image: none !important;
+  background: transparent !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+.main-panel,
+.outer-container,
+.chat_container > div,
+.MuiContainer-root,
+.MuiPaper-root {
+  background: #3b2b20 !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.75) !important;
+  color: #efeade !important;
+}
+
+button, .btn, .MuiButton-root {
+  background: linear-gradient(#c38a45,#8b5a2b) !important;
+  color: #fff9ef !important;
+  border: 1px solid rgba(0,0,0,0.35) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
+  border-radius: 12px !important;
+}
+
+button:hover { transform: translateY(-2px) !important; filter: brightness(1.06) !important; }
+
+.Mui-selected, .electron-selected, .btn.checked, .btn.active {
+  background: linear-gradient(#6aa84f,#4a7a33) !important;
+  color: #fff !important;
+  box-shadow: 0 16px 50px rgba(74,122,51,0.16) !important;
+}
+
+input, textarea, select, .input {
+  background: rgba(255,255,255,0.03) !important;
+  color: #efeade !important;
+  border: 1px solid rgba(255,255,255,0.04) !important;
+  -webkit-text-fill-color: #efeade !important;
+}
+
+.MuiDialog-paper, .modal, .dialog, [role="dialog"] {
+  background: #2f2419 !important;
+  color: #efeade !important;
+  box-shadow: 0 30px 120px rgba(0,0,0,0.9) !important;
+  border: 1px solid rgba(255,255,255,0.02) !important;
+}
+
+.electron-selected {
+  outline: 3px solid rgba(106,168,79,0.18) !important;
+  box-shadow: 0 20px 70px rgba(74,122,51,0.12) !important;
+}
+
+a, a:visited { color: #9fcf7f !important; text-decoration: underline !important; }
+
+.main-panel,
+.outer-container,
+.chat_container > div,
+.MuiContainer-root,
+.MuiPaper-root {
+  border-radius: 22px !important;
+}
+
+.MuiDialog-paper,
+.modal,
+.dialog,
+[role="dialog"] {
+  border-radius: 22px !important;
+}
+
+.callScreen__complaintBtn,
+.callScreen__settingsBtn,
+.callScreen__finishBtn {
+  background: rgba(0,0,0,0.18) !important;
+  color: #efeade !important;
+  border: 1px solid rgba(255,255,255,0.02) !important;
+  border-radius: 10px !important;
+}
+
+[style*="background"], [style*="background-image"], .overlay, .site-background {
+  background-image: none !important;
+  background-color: transparent !important;
+}

@@ -1,0 +1,94 @@
+html, body, #root, .app, main {
+  background: linear-gradient(180deg,#071522 0%,#0a2a3d 100%) !important;
+  color: #eaf4ff !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+*,
+*::before,
+*::after {
+  background-image: none !important;
+  background: transparent !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+.main-panel,
+.outer-container,
+.chat_container > div,
+.MuiContainer-root,
+.MuiPaper-root {
+  background: #0f2b3b !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.6) !important;
+  color: #eaf4ff !important;
+}
+
+button, .btn, .MuiButton-root {
+  background: linear-gradient(180deg,#1f4e6b,#17384a) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.28) !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.55) !important;
+  border-radius: 12px !important;
+}
+
+button:hover { transform: translateY(-2px) !important; }
+
+.Mui-selected, .electron-selected, .btn.checked, .btn.active {
+  background: #b46b93 !important;
+  color: #fff !important;
+  box-shadow: 0 18px 50px rgba(180,107,147,0.20) !important;
+}
+
+input, textarea, select, .input {
+  background: #0b2432 !important;
+  color: #eaf4ff !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  -webkit-text-fill-color: #eaf4ff !important;
+}
+
+.MuiDialog-paper, .modal, .dialog, [role="dialog"] {
+  background: #081822 !important;
+  color: #eaf4ff !important;
+  box-shadow: 0 30px 120px rgba(0,0,0,0.75) !important;
+  border: 1px solid rgba(255,255,255,0.03) !important;
+}
+
+.electron-selected {
+  outline: 3px solid rgba(180,107,147,0.22) !important;
+  box-shadow: 0 20px 60px rgba(41,82,103,0.28) !important;
+}
+
+a, a:visited { color: #8fd1ff !important; text-decoration: underline !important; }
+
+#__electron_settings_btn {
+  background: linear-gradient(180deg,#23607f,#173b50) !important;
+  color: #ffffff !important;
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.6) !important;
+  border: 1px solid rgba(255,255,255,0.04) !important;
+  z-index: 1000000 !important;
+}
+#__electron_settings_btn * { color: #fff !important; }
+
+[style*="background"], [style*="background-image"] {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+.main-panel,
+.outer-container,
+.chat_container > div,
+.MuiContainer-root,
+.MuiPaper-root {
+  border-radius: 22px !important;
+}
+
+.MuiDialog-paper,
+.modal,
+.dialog,
+[role="dialog"] {
+  border-radius: 22px !important;
+}

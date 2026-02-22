@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Settings</title>
+<link rel="stylesheet" href="settings.css">
+</head>
+<body>
+
+<h2>Настройки</h2>
+
+<h3>Темы</h3>
+<select id="theme">
+  <option value="winter" selected>winter</option>
+</select>
+
+<h3>Громкость</h3>
+<div class="volume-block">
+  <input type="range" id="volumeSlider" min="0" max="100" step="1">
+  <span id="volumeValue">100%</span>
+</div>
+
+<h3>Микрофон</h3>
+<select id="mic"></select>
+
+<h3>Горячие клавиши</h3>
+<div class="hotkeys" aria-hidden="false">
+  <div class="hotkey">
+    <span class="key">F1</span>
+    <span class="desc">Начало разговора</span>
+  </div>
+
+  <div class="hotkey">
+    <span class="key">F2</span>
+    <span class="desc">"Завершить"</span>
+  </div>
+
+  <div class="hotkey">
+    <span class="key">F3</span>
+    <span class="desc">Блокировка микрофона</span>
+  </div>
+
+  <div class="hotkey">
+    <span class="key">F4</span>
+    <span class="desc">"Искать нового собеседника"</span>
+  </div>
+
+  <div class="hotkey sub">
+    <span class="key">F5</span>
+    <span class="desc">"Отменить" (после кнопки завершить)</span>
+  </div>
+
+  <div class="hotkey sub">
+    <span class="key">F6</span>
+    <span class="desc">"Завершить" (подтвердить в диалоге)</span>
+  </div>
+</div>
+
+<h3>Кастомная тема</h3>
+<button id="importTheme">Выбрать .css файл</button>
+
+<h3>Изображение (600 x 280)</h3>
+<div style="display:flex;gap:8px;align-items:center;">
+  <button id="importDimka">Заменить изображение</button>
+  <button id="resetDimka" style="opacity:0.9">Восстановить стандартное</button>
+  <span id="dimkaStatus" style="margin-left:8px;color:#b8b8b8;font-size:13px">Статус: неизвестен</span>
+</div>
+<div id="dimkaPreviewWrapper" style="margin-top:8px;">
+  <img id="dimkaPreview" src="" alt="preview" style="max-width:100%;height:120px;object-fit:cover;border-radius:8px;display:none;border:1px solid rgba(255,255,255,0.04)"/>
+</div>
+
+<h3>Память</h3>
+<div id="memory">...</div>
+
+<h3>Поддержка</h3>
+<div class="support">
+  <a id="telegramSupport" href="https://t.me/TEAP3" target="_blank" rel="noopener noreferrer">@TEAP3</a>
+</div>
+
+<script>
+const theme = document.getElementById("theme");
+const mic = document.getElementById("mic");
+mic.onchange = async () => {
+  try {
+    if (window.settingsAPI && window.settingsAPI.setMic) {
+      await window.settingsAPI.setMic(mic.value);
+    } else {
+      console.warn('settingsAPI.setMic not available');
+    }
+  } catch (e) {
+    console.error('Error setting mic:', e);
+  }
+};
+const memory = document.getElementById("memory");
+const importBtn = document.getElementById("importTheme");
+
+theme.onchange = async () => {
+  try {
+    if (window.settingsAPI && window.settingsAPI.setTheme) {
+      await window.settingsAPI.setTheme(theme.value);
+    } else {
+      console.warn('settingsAPI.setTheme not available');
+    }
+  } catch (e) {
+    console.error('Error setting theme:', e);
+  }
+};
+
+async function updateMemory() {
+  try {
+    if (window.settingsAPI && window.settingsAPI.getMemoryUsage) {
+      const mem = await window.settingsAPI.getMemoryUsage();
+      memory.textContent = "RSS: " + mem.rss + " MB";
+    } else {
+      memory.textContent = "RSS: ? MB";
+    }
+  } catch (e) {
+    console.error('updateMemory error', e);
+    memory.textContent = "RSS: ? MB";
+  }
+}
+
+setInterval(updateMemory, 500);
+updateMemory();
+
+function ensurePermissionWarning() {
+  let warn = document.getElementById('micPermissionWarn');
+  if (!warn) {
+    warn = document.createElement('div');
+    warn.id = 'micPermissionWarn';
+    warn.style.marginTop = '10px';
+    warn.style.padding = '10px';
+    warn.style.borderRadius = '10px';
+    warn.style.background = 'rgba(255,70,70,0.06)';
+    warn.style.color = '#ff6b6b';
+    warn.innerHTML = '<strong>Доступ к микрофону запрещён.</strong> Нажмите кнопку, чтобы открыть настройки системы и разрешить доступ, затем обновите список устройств.';
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Открыть настройки микрофона';
+    btn.style.marginTop = '8px';
+    btn.onclick = async () => {
+      try {
+        if (window.settingsAPI && window.settingsAPI.openMicSettings) {
+          await window.settingsAPI.openMicSettings();
+        } else {
+          alert('Не удалось открыть системные настройки. Откройте их вручную.');
+        }
+      } catch (e) {
+        console.warn('openMicSettings failed', e);
+      }
+    };
+
+    warn.appendChild(document.createElement('br'));
+    warn.appendChild(btn);
+    mic.parentNode && mic.parentNode.insertBefore(warn, mic.nextSibling);
+  }
+  return warn;
+}
+
+function removePermissionWarning() {
+  const w = document.getElementById('micPermissionWarn');
+  if (w) w.remove();
+}
+
+async function populateMicOptions() {
+  try {
+    mic.innerHTML = '';
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === 'audioinput');
+    if (mics.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.text = 'Микрофоны не найдены';
+      mic.appendChild(opt);
+      return;
+    }
+    mics.forEach((d, idx) => {
+      const opt = document.createElement('option');
+      opt.value = d.deviceId;
+      opt.text = d.label && d.label.trim() ? d.label : ('Микрофон ' + (idx + 1));
+      mic.appendChild(opt);
+    });
+    removePermissionWarning();
+  } catch (e) {
+    console.error('populateMicOptions error', e);
+    mic.innerHTML = '<option>Ошибка при получении устройств</option>';
+  }
+}
+
+async function loadMics() {
+  try {
+    removePermissionWarning();
+    mic.innerHTML = '';
+
+    let permissionState = null;
+    try {
+      const p = await navigator.permissions.query({ name: 'microphone' });
+      permissionState = p.state;
+    } catch (e) {
+      permissionState = null;
+    }
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === 'audioinput');
+
+    if (mics.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.text = 'Микрофоны не найдены';
+      mic.appendChild(opt);
+    } else {
+      mics.forEach((d, idx) => {
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        opt.text = d.label && d.label.trim() ? d.label : ('Микрофон ' + (idx + 1));
+        mic.appendChild(opt);
+      });
+    }
+
+    if (permissionState === 'denied') {
+      ensurePermissionWarning();
+      return;
+    }
+
+    const anyLabels = mics.some(m => m.label && m.label.trim());
+    let requestBtn = document.getElementById('requestMicAccessBtn');
+    if (!anyLabels) {
+      if (!requestBtn) {
+        requestBtn = document.createElement('button');
+        requestBtn.id = 'requestMicAccessBtn';
+        requestBtn.style.marginTop = '8px';
+        requestBtn.textContent = 'Запросить доступ к микрофону';
+        requestBtn.onclick = async () => {
+          try {
+            requestBtn.disabled = true;
+            requestBtn.textContent = 'Запрашиваем...';
+            await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (err) {
+            console.warn('getUserMedia in settings failed', err);
+            try { alert('Не удалось получить доступ к микрофону. Проверьте настройки ОС/приложения.'); } catch (_) {}
+          } finally {
+            await populateMicOptions();
+            requestBtn.disabled = false;
+            requestBtn.textContent = 'Запросить доступ к микрофону';
+          }
+        };
+        mic.parentNode && mic.parentNode.insertBefore(requestBtn, mic.nextSibling);
+      }
+    } else {
+      if (requestBtn) requestBtn.remove();
+    }
+
+  } catch (e) {
+    console.error('loadMics error', e);
+    mic.innerHTML = '<option>Ошибка при получении устройств</option>';
+  }
+}
+
+loadMics().then(initMicSelect).catch(err => { console.warn('initial loadMics failed', err); });
+
+async function initMicSelect() {
+  try {
+    if (!window.settingsAPI || !window.settingsAPI.getCurrentMic) return;
+
+    const current = await window.settingsAPI.getCurrentMic();
+    if (!current) return;
+
+    if ([...mic.options].some(o => o.value === current)) {
+      mic.value = current;
+      return;
+    }
+
+    let tries = 0;
+    while (tries < 10 && mic.options.length === 0) {
+      await new Promise(r => setTimeout(r, 200));
+      tries++;
+    }
+
+    if ([...mic.options].some(o => o.value === current)) {
+      mic.value = current;
+    }
+  } catch (e) {
+    console.warn('initMicSelect error', e);
+  }
+}
+
+loadMics().then(initMicSelect);
+
+async function populateThemes() {
+  try {
+    if (!window.settingsAPI || !window.settingsAPI.listThemes) {
+      return;
+    }
+
+    const themes = await window.settingsAPI.listThemes();
+    const current = await window.settingsAPI.getCurrentTheme();
+
+    theme.innerHTML = '';
+
+    themes.sort((a,b) => {
+      if (a === 'winter') return -1;
+      if (b === 'winter') return 1;
+      return a.localeCompare(b);
+    });
+
+    themes.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.text = t;
+      theme.appendChild(opt);
+    });
+
+    if (themes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = 'winter';
+      opt.text = 'winter';
+      opt.selected = true;
+      theme.appendChild(opt);
+    }
+
+    if (current) {
+      if (![...theme.options].some(o => o.value === current)) {
+        const opt = document.createElement('option');
+        opt.value = current;
+        opt.text = current;
+        theme.appendChild(opt);
+      }
+      theme.value = current;
+    }
+
+  } catch (e) {
+    console.error('populateThemes error', e);
+  }
+}
+
+if (importBtn) {
+  importBtn.onclick = async () => {
+    try {
+      if (!window.settingsAPI || !window.settingsAPI.importCustomTheme) {
+        console.warn('settingsAPI.importCustomTheme not available');
+        return;
+      }
+
+      const success = await window.settingsAPI.importCustomTheme();
+
+      if (success) {
+        await populateThemes();
+
+        const hasCustom = [...theme.options].some(o => o.value === 'custom');
+        if (hasCustom) {
+          theme.value = 'custom';
+          try {
+            if (window.settingsAPI && window.settingsAPI.setTheme) {
+              await window.settingsAPI.setTheme('custom');
+            }
+          } catch(e){}
+        }
+
+        try { alert('Кастомная тема импортирована.'); } catch(e){}
+      } else {
+        try { alert('Импорт отменён или произошла ошибка.'); } catch(e){}
+      }
+
+    } catch (e) {
+      console.error('Import theme error', e);
+      try { alert('Ошибка при импорте темы'); } catch(err){}
+    }
+  };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  populateThemes();
+});
+
+const importDimkaBtn = document.getElementById('importDimka');
+const resetDimkaBtn = document.getElementById('resetDimka');
+const dimkaStatus = document.getElementById('dimkaStatus');
+const dimkaPreview = document.getElementById('dimkaPreview');
+
+async function refreshDimkaStatus() {
+  try {
+    if (!window.settingsAPI || !window.settingsAPI.getDimkaUrl) {
+      dimkaStatus.textContent = 'Статус: API недоступно';
+      return;
+    }
+
+    const url = await window.settingsAPI.getDimkaUrl();
+
+    if (!url) {
+      dimkaStatus.textContent = 'Текущее изображение: стандартное';
+      dimkaPreview.style.display = 'none';
+      dimkaPreview.src = '';
+      return;
+    }
+
+    dimkaStatus.textContent = 'Текущее изображение: кастомное';
+    dimkaPreview.src = url;
+    dimkaPreview.style.display = 'block';
+  } catch (e) {
+    console.error('refreshDimkaStatus error', e);
+    dimkaStatus.textContent = 'Статус: ошибка';
+  }
+}
+
+if (importDimkaBtn) {
+  importDimkaBtn.onclick = async () => {
+    try {
+      importDimkaBtn.disabled = true;
+      importDimkaBtn.textContent = 'Открываем...';
+
+      if (!window.settingsAPI || !window.settingsAPI.importDimka) {
+        alert('API недоступно');
+        return;
+      }
+
+      const res = await window.settingsAPI.importDimka();
+
+      if (res && res.ok) {
+        alert('Изображение успешно заменено.');
+        await refreshDimkaStatus();
+      } else if (res && res.msg !== 'cancelled') {
+        alert('Ошибка при импорте изображения.');
+      }
+
+    } catch (e) {
+      console.error('importDimka error', e);
+      alert('Ошибка при замене изображения');
+    } finally {
+      importDimkaBtn.disabled = false;
+      importDimkaBtn.textContent = 'Заменить изображение';
+    }
+  };
+}
+
+if (resetDimkaBtn) {
+  resetDimkaBtn.onclick = async () => {
+    try {
+      resetDimkaBtn.disabled = true;
+
+      if (!window.settingsAPI || !window.settingsAPI.resetDimka) {
+        alert('API недоступно');
+        return;
+      }
+
+      const res = await window.settingsAPI.resetDimka();
+
+      if (res && res.ok !== false) {
+        alert('Изображение восстановлено.');
+        await refreshDimkaStatus();
+      } else {
+        alert('Ошибка при восстановлении.');
+      }
+
+    } catch (e) {
+      console.error('resetDimka error', e);
+      alert('Ошибка при восстановлении изображения');
+    } finally {
+      resetDimkaBtn.disabled = false;
+    }
+  };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  refreshDimkaStatus();
+});
+
+const telegramSupport = document.getElementById('telegramSupport');
+
+if (telegramSupport) {
+  telegramSupport.onclick = (e) => {
+    e.preventDefault();
+    try {
+      if (window.settingsAPI && window.settingsAPI.openExternal) {
+        window.settingsAPI.openExternal('https://t.me/TEAP3');
+      } else {
+        window.open('https://t.me/TEAP3');
+      }
+    } catch (err) {
+      console.warn('Failed to open telegram', err);
+    }
+  };
+}
+
+(async function(){
+  const slider = document.getElementById('volumeSlider');
+  const label = document.getElementById('volumeLabel') || document.getElementById('volumeValue');
+
+  if (!slider) return;
+
+  async function sendVolumeToMain(normalized0to1) {
+    try {
+      if (window.settingsAPI && window.settingsAPI.setVolume) {
+        await window.settingsAPI.setVolume(Number(normalized0to1));
+      } else {
+        console.warn('settingsAPI.setVolume not available');
+      }
+    } catch (e) {
+      console.error('Error sending volume to main:', e);
+    }
+  }
+
+  try {
+    if (window.settingsAPI && window.settingsAPI.getCurrentVolume) {
+      let cur = await window.settingsAPI.getCurrentVolume();
+      if (typeof cur === 'number') {
+        if (cur > 1.5) cur = Math.min(100, cur);
+        if (cur > 1) cur = cur / 100;
+      } else {
+        cur = 1;
+      }
+      const pct = Math.round(cur * 100);
+      slider.value = pct;
+      if (label) label.textContent = pct + '%';
+    } else {
+      const fallback = Number(slider.value) || 100;
+      if (label) label.textContent = fallback + '%';
+    }
+  } catch (e) {
+    console.warn('initVolumeControl error', e);
+    const fallback = Number(slider.value) || 100;
+    if (label) label.textContent = fallback + '%';
+  }
+
+  try {
+    const startPct = Number(slider.value) || 100;
+    await sendVolumeToMain(startPct / 100);
+  } catch (_) {}
+
+  let t = null;
+  slider.addEventListener('input', () => {
+    const pct = Math.max(0, Math.min(100, Math.round(Number(slider.value) || 0)));
+    if (label) label.textContent = pct + '%';
+
+    if (t) clearTimeout(t);
+    t = setTimeout(() => {
+      sendVolumeToMain(pct / 100);
+      t = null;
+    }, 100);
+  });
+})();
+</script>
+
+</body>
+</html>

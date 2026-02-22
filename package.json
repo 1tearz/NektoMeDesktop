@@ -10,7 +10,7 @@
   "main": "main.js",
   "private": true,
   "scripts": {
-    "start": "electron . --no-sandbox",
+    "start": "electron .",
     "build:win": "electron-builder --win nsis",
     "build:deb": "electron-builder --linux deb"
   },

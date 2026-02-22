@@ -36,7 +36,7 @@
 2. Клонируйте репозиторий:
    ```bash
    git clone https://github.com/1tearz/NektoMeDesktop.git
-   cd nekto-desktop
+   cd NektoMeDesktop
 
 Установите зависимости:
 bash
